@@ -100,8 +100,8 @@ class Solution:
         self.convolutionA = [self.convolutionA[i]/A for i in range(len(self.convolutionA))]
         return [self.integrateTrapz(self.convolutionA[:i], self.data.ti[:i]) for i in self.data.ti[1:]]
 
-        
-    def search_ppf(cdf_values, target, epsilon=1e-6):
+    
+    def search_ppf(self, cdf_values, target, epsilon=1e-6):
         """
         Calculate the PPF (point percent function = inverse cumulative distribution function [CDF])
         of a probability distribution using search.
@@ -123,7 +123,6 @@ class Solution:
             else:
                 high = mid
         return low + (target - cdf_values[low]) / (cdf_values[high] - cdf_values[low])
-
 def main():
     data_input = DataInput()
     data_analysis = Solution(data_input)
