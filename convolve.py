@@ -103,22 +103,27 @@ class Solution:
         
     def search_ppf(cdf_values, target, epsilon=1e-6):
         """
-        Calculate the PPF (point percent function = inverse cuumulative distribution function [CDF])
+        Calculate the PPF (point percent function = inverse cumulative distribution function [CDF])
         of a probability distribution using search.
-        
+
         This will find the X axis value of a given y axis value input
-        
+
         cdf_values (list): A sorted list representing the CDF from 0 to 1.
         target (float): The target probability for which the PPF is computed.
         epsilon (float): The tolerance level for the search.
 
         return (float): The PPF of the probability distribution.
         """
-        
-        """
-        [TODO] (2) Implement search function here
-        """
-        return    
+        low = 0
+        high = len(cdf_values) - 1
+        while high - low > 1:
+            mid = (low + high) // 2
+            if cdf_values[mid] < target:
+                low = mid
+            else:
+                high = mid
+        return low + (target - cdf_values[low]) / (cdf_values[high] - cdf_values[low])
+
 def main():
     data_input = DataInput()
     data_analysis = Solution(data_input)
