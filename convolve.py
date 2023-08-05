@@ -65,15 +65,7 @@ class Solution:
         self.timeModelA = self.search_ppf(self.compute_cdf(), self.data.probModel, epsilon=1e-4)
         
     def exp(self, x, terms=100):
-        """Compute the exponential function
-
-        Args:
-            x (float): The exponent to calculate e^x for.
-            terms (int, optional): The number of terms in the series to use for the approximation. Defaults to 100.
-
-        Returns:
-            float: The value of e^x
-        """    
+         
         result = 0
         x_power = 1
         factorial = 1
@@ -84,23 +76,11 @@ class Solution:
         return result
 
     def exponentialPDF(self, t, r):
-        """Compute the probability density function for the exponential probability distribution.
-        Args:
-            t (float): The time.
-            r (float): The rate of events per unit time.
-        Returns:
-            float: The probability density at time t for a given rate r.
-        """
+      
         return r*self.exp(-r*t)
 
     def uniformPDF(self, t,a,b):
-        """Compute the probability density function for the uniform probability distribution.
-        Args:
-            a (float): Lower bound
-            b (float): Upper bound
-        Returns:
-            float: The probability density at time t for a given bounds [a,b].
-        """
+       
         if a <= t and t <= b:
             return (1/(b-a))
         else:
@@ -132,30 +112,36 @@ class Solution:
         return convolutionA
 
 
+
     def compute_cdf(self):
         A = self.integrateTrapz(self.convolutionA, self.data.ti)
         self.convolutionA = [self.convolutionA[i]/A for i in range(len(self.convolutionA))]
         return [self.integrateTrapz(self.convolutionA[:i], self.data.ti[:i]) for i in self.data.ti[1:]]
 
         
-    def search_ppf(cdf_values, target, epsilon=1e-6):
+    def search_ppf(self, cdf_values, target, epsilon=1e-6):
         """
-        Calculate the PPF (point percent function = inverse cuumulative distribution function [CDF])
+        Calculate the PPF (point percent function = inverse cumulative distribution function [CDF])
         of a probability distribution using search.
-        
+    
         This will find the X axis value of a given y axis value input
-        
+    
         cdf_values (list): A sorted list representing the CDF from 0 to 1.
         target (float): The target probability for which the PPF is computed.
         epsilon (float): The tolerance level for the search.
-
+    
         return (float): The PPF of the probability distribution.
         """
-        
-        """
-        [TODO] (2) Implement search function here
-        """
-        return    
+        low = 0
+        high = len(cdf_values) - 1
+        while high - low > 1:
+            mid = (low + high) // 2
+            if cdf_values[mid] < target:
+                low = mid
+            else:
+                high = mid
+        return low + (target - cdf_values[low]) / (cdf_values[high] - cdf_values[low]) * (high - low)
+
 
 
 
