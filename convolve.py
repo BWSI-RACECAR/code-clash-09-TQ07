@@ -64,86 +64,88 @@ class Solution:
         self.mean2A = self.data.mean2A
         self.timeModelA = self.search_ppf(self.compute_cdf(), self.data.probModel, epsilon=1e-4)
         
-    def exp(self, x, terms=100):
-         
-        result = 0
-        x_power = 1
-        factorial = 1
-        for i in range(terms):
-            result += x_power / factorial
-            x_power *= x
-            factorial *= i + 1
-        return result
-
-    def exponentialPDF(self, t, r):
-      
-        return r*self.exp(-r*t)
-
-    def uniformPDF(self, t,a,b):
-       
-        if a <= t and t <= b:
-            return (1/(b-a))
-        else:
-            return 0 
-
-    def integrateTrapz(self, f,x):
-        """Perform trapezoidal integration, approximating the area under the curve over width h.
+    def uniformPDF(self, t, a, b):
+        """Compute the probability density function of a uniform distribution
 
         Args:
-            f (Callable): A function to integrate over x.
-            x (List[float]): The x-values to compute the integral over.
+            t (float): The value to compute the probability density for.
+            a (float): The lower bound of the uniform distribution.
+            b (float): The upper bound of the uniform distribution.
 
         Returns:
-            float: The definite integral of f(x) from x[0] to x[-1], computed using the trapezoidal rule.
+            float: The probability density at t.
         """
-        n = len(x)
-        if n == 1:
+        if a <= t <= b:
+            return 1 / (b - a)
+        else:
             return 0
-        h = (x[-1] - x[0])/(n-1)
-        return (h/2) * (f[0] + 2 *sum(f[1:n-1]) + f[n-1])
-
-    def compute_convolution(self):
-        convolutionA = []
-        for i, t in enumerate(self.data.ti):
-            f = self.f1A[:i+1]
-            g = self.f2A[i::-1]
-            I = [f[j]*g[j] for j in range(i+1)]
-            convolutionA.append(self.integrateTrapz(I, self.data.ti[:i+1]))
-        return convolutionA
-
-
-
-    def compute_cdf(self):
-        A = self.integrateTrapz(self.convolutionA, self.data.ti)
-        self.convolutionA = [self.convolutionA[i]/A for i in range(len(self.convolutionA))]
-        return [self.integrateTrapz(self.convolutionA[:i], self.data.ti[:i]) for i in self.data.ti[1:]]
-
         
-    def search_ppf(self, cdf_values, target, epsilon=1e-6):
+    def exponentialPDF(self, t, r):
+        """Compute the probability density function of an exponential distribution
+
+        Args:
+            t (float): The value to compute the probability density for.
+            r (float): The rate parameter of the exponential distribution.
+
+        Returns:
+            float: The probability density at t.
         """
-        Calculate the PPF (point percent function = inverse cumulative distribution function [CDF])
-        of a probability distribution using search.
+        return r * exp(-r * t)
     
-        This will find the X axis value of a given y axis value input
+    def compute_convolution(self):
+        """Compute the convolution of f1A and f2A
+
+        Returns:
+            list: The convolution of f1A and f2A
+        """
+        convolution = []
+        
+        for n in range(len(self.f1A) + len(self.f2A) - 1):
+            sum_ = 0
+            for k in range(len(self.f1A)):
+                if n - k >= 0 and n - k < len(self.f2A):
+                    sum_ += self.f1A[k] * self.f2A[n - k]
+            convolution.append(sum_)
+            
+        return convolution
     
-        cdf_values (list): A sorted list representing the CDF from 0 to 1.
-        target (float): The target probability for which the PPF is computed.
-        epsilon (float): The tolerance level for the search.
+    def compute_cdf(self):
+        """Compute the cumulative distribution function of convolution
+
+        Returns:
+            list: The cumulative distribution function of convolution
+        """
+        cdf = []
+        
+        sum_ = 0
+        for i in range(len(self.convolutionA)):
+            sum_ += self.convolutionA[i]
+            cdf.append(sum_)
+            
+        return cdf
     
-        return (float): The PPF of the probability distribution.
+    def search_ppf(self, cdf, p, epsilon=1e-4):
+        """Search for the value x such that cdf(x) == p using binary search
+    
+        Args:
+            cdf (list): The cumulative distribution function to search in.
+            p (float): The target probability.
+            epsilon (float, optional): The tolerance for binary search. Defaults to 1e-4.
+    
+        Returns:
+            float: The value x such that cdf(x) == p
         """
         low = 0
-        high = len(cdf_values) - 1
-        while high - low > 1:
-            mid = (low + high) // 2
-            if cdf_values[mid] < target:
+        high = len(cdf) - 1
+        
+        while high - low > epsilon:
+            mid = (low + high) / 2
+            if cdf[int(mid)] < p:
                 low = mid
             else:
                 high = mid
-        return low + (target - cdf_values[low]) / (cdf_values[high] - cdf_values[low]) * (high - low)
-
-
-
+                
+        return low
 
 def main():
     data_input = DataInput()
